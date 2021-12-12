@@ -13,6 +13,7 @@ import com.rommansabbir.storex.execptions.NoStoreAbleObjectFound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 internal class StoreXInstance(
@@ -47,24 +48,75 @@ internal class StoreXInstance(
         }
     }
 
+    override fun put(scope: CoroutineScope, key: String, value: StoreAbleObject) {
+        scope.launch {
+            try {
+                val serializedValue: String = serializer.toJson(value)
+                if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
+                    doCache(key, serializedValue)
+                } else {
+                    val encryptedValue = EncryptionTool.encrypt(serializedValue)
+                    doCache(key, encryptedValue)
+                }
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+
     override fun <T : StoreAbleObject> put(
         key: String,
         value: StoreAbleObject,
         callback: SaveCallback<T>
     ) {
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val serializedValue: String = serializer.toJson(value)
                 if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
                     doCache(key, serializedValue)
-                    callback.onDone(value as T, null)
+                    withContext(Dispatchers.Main){
+                        callback.onDone(value as T, null)
+                    }
                 } else {
                     val encryptedValue = EncryptionTool.encrypt(serializedValue)
                     doCache(key, encryptedValue)
-                    callback.onDone(value as T, null)
+                    withContext(Dispatchers.Main){
+                        callback.onDone(value as T, null)
+                    }
                 }
             } catch (e: Exception) {
-                callback.onDone(value as T, e)
+                withContext(Dispatchers.Main){
+                    callback.onDone(value as T, e)
+                }
+            }
+        }
+    }
+
+    override fun <T : StoreAbleObject> put(
+        scope: CoroutineScope,
+        key: String,
+        value: StoreAbleObject,
+        callback: SaveCallback<T>,
+    ) {
+        scope.launch {
+            try {
+                val serializedValue: String = serializer.toJson(value)
+                if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
+                    doCache(key, serializedValue)
+                    withContext(Dispatchers.Main){
+                        callback.onDone(value as T, null)
+                    }
+                } else {
+                    val encryptedValue = EncryptionTool.encrypt(serializedValue)
+                    doCache(key, encryptedValue)
+                    withContext(Dispatchers.Main){
+                        callback.onDone(value as T, null)
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main){
+                    callback.onDone(value as T, e)
+                }
             }
         }
     }
@@ -99,26 +151,72 @@ internal class StoreXInstance(
         objectType: Class<T>,
         callback: GetCallback<T>
     ) {
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 when (val value = getCache(key)) {
                     null -> {
-                        callback.onSuccess(null, NoStoreAbleObjectFound())
+                        withContext(Dispatchers.Main){
+                            callback.onSuccess(null, NoStoreAbleObjectFound())
+                        }
                     }
                     else -> {
                         when (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
                             true -> {
-                                callback.onSuccess(serializer.fromJson(value, objectType))
+                                withContext(Dispatchers.Main){
+                                    callback.onSuccess(serializer.fromJson(value, objectType))
+                                }
                             }
                             else -> {
                                 val decryptedValue = EncryptionTool.decrypt(value)
-                                callback.onSuccess(serializer.fromJson(decryptedValue, objectType))
+                                withContext(Dispatchers.Main){
+                                    callback.onSuccess(serializer.fromJson(decryptedValue, objectType))
+                                }
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                callback.onSuccess(null, e)
+                withContext(Dispatchers.Main){
+                    callback.onSuccess(null, e)
+                }
+            }
+        }
+    }
+
+    override fun <T : StoreAbleObject> get(
+        scope: CoroutineScope,
+        key: String,
+        objectType: Class<T>,
+        callback: GetCallback<T>,
+    ) {
+        scope.launch {
+            try {
+                when (val value = getCache(key)) {
+                    null -> {
+                        withContext(Dispatchers.Main){
+                            callback.onSuccess(null, NoStoreAbleObjectFound())
+                        }
+                    }
+                    else -> {
+                        when (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
+                            true -> {
+                                withContext(Dispatchers.Main){
+                                    callback.onSuccess(serializer.fromJson(value, objectType))
+                                }
+                            }
+                            else -> {
+                                val decryptedValue = EncryptionTool.decrypt(value)
+                                withContext(Dispatchers.Main){
+                                    callback.onSuccess(serializer.fromJson(decryptedValue, objectType))
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main){
+                    callback.onSuccess(null, e)
+                }
             }
         }
     }

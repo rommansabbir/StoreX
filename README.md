@@ -40,22 +40,49 @@ dependencies {
 
 | Latest Releases
 | ------------- |
-| 1.0.0         |
+| 1.2.0         |
 
 ---
 
+### What's new in this version?
+- Multiple instance of StoreX with differnet configuration & storage
+- Added support for custom Coroutine Scopes
+
 ## Initialize
 ````
-StoreXCore.init(application: Application, prefName: String)
+// Create multiple identifers
+object StoreXIdentifiers {
+    val mainConfig : StoreXConfig = StoreXConfig("Something_1", "main_pref")
+    val anotherConfig : StoreXConfig = StoreXConfig("Something_2", "secondary_pref")
+}
+````
+
+````
+// Deprecated. Will be removed in the future version
+StoreXCore.init(this, getString(R.string.app_name))
+
+// New method
+StoreXCore.init(this, mutableListOf(
+    StoreXIdentifiers.mainConfig,
+    StoreXIdentifiers.mainConfig,
+))
 ````
 
 ## How To Access
 ````
+// Deprecated. Will be removed in the future version
 StoreXCore.instance()
+
+// New method
+StoreXCore.instance(configs: StoreXConfig)
 ````
 or else, use the extension function
 ````
+// Deprecated. Will be removed in the future version
 storeXInstance()
+
+// New method
+fun storeXInstance(config: StoreXConfig)
 ````
 which return an instance of `StoreX` [Note:  You must initalize `StoreX` properly before accessing or else it will throw `NotInitializedException`]
 
@@ -104,7 +131,7 @@ First setup an callback for the data changes
         }
     }
 ````
-Create a new sunscriber.
+Create a new subscriber.
 
 Create a new subscriber by providing the `Key`, `Observer ID (Must be unique)` and the `Callback`
 

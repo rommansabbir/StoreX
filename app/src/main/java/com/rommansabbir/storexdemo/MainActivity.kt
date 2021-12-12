@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), EventCallback {
             val model = UserData().apply {
                 username = "Cached on Main Thread: Signature :${this.objectId}"
             }
-            StoreXCore.instance().put(key, model).let {
+            StoreXCore.instance(StoreXIdentifiers.anotherConfig).put(key, model).let {
                 if (it) {
                     findViewById<TextView>(R.id.am_tv_cache_main_thread).apply {
                         text = "Cached On Main Thread : ${model.username}"
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity(), EventCallback {
         }
 
         findViewById<Button>(R.id.am_cache_asnyc_btn).setOnClickListener {
-            StoreXCore.instance().put(key, UserData().apply {
+            StoreXCore.instance(StoreXIdentifiers.anotherConfig).put(key, UserData().apply {
                 username = "Cached Asyc: Signature :${this.objectId}"
             }, object : SaveCallback<UserData> {
                 override fun onDone(value: UserData, exception: Exception?) {
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity(), EventCallback {
         }
 
         findViewById<Button>(R.id.am_get_cache_btn).setOnClickListener {
-            storeXInstance().get(key, UserData::class.java).let {
+            storeXInstance(StoreXIdentifiers.anotherConfig).get(key, UserData::class.java).let {
                 findViewById<TextView>(R.id.am_tv_get_cache_main).apply {
                     text = "Get On Main Thread : ${it.username}"
                 }
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity(), EventCallback {
         }
 
         findViewById<Button>(R.id.am_get_cache_async_btn).setOnClickListener {
-            storeXInstance().get(key, UserData::class.java, object : GetCallback<UserData>{
+            storeXInstance(StoreXIdentifiers.anotherConfig).get(key, UserData::class.java, object : GetCallback<UserData>{
                 override fun onSuccess(value: UserData?, exception: Exception?) {
                     findViewById<TextView>(R.id.am_tv_get_cache_async).apply {
                         text =
@@ -74,18 +74,18 @@ class MainActivity : AppCompatActivity(), EventCallback {
 
         findViewById<Button>(R.id.am_btn_add_observers).setOnClickListener {
 
-            StoreXCore.instance().addSubscriber(list)
+            StoreXCore.instance(StoreXIdentifiers.anotherConfig).addSubscriber(list)
             findViewById<TextView>(R.id.am_tv_observers_update).text = "Subscriber Added :: Size :${list.size}"
         }
 
         findViewById<Button>(R.id.am_remove_observer_btn).setOnClickListener{
-            storeXInstance().removeSubscriber(list)
+            storeXInstance(StoreXIdentifiers.anotherConfig).removeSubscriber(list)
             findViewById<TextView>(R.id.am_tv_observer_remove).apply {
                 text = "Removed"
             }
             findViewById<TextView>(R.id.am_tv_observers_update).text = ""
         }
-        storeXInstance().removeSubscriber(subscriber1)
+//        storeXInstance().removeSubscriber(subscriber1)
     }
 
     private val callback1 = object : EventCallback{
