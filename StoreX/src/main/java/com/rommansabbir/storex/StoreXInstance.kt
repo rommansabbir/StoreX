@@ -3,7 +3,6 @@
 package com.rommansabbir.storex
 
 import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.rommansabbir.storex.callbacks.GetCallback
@@ -14,33 +13,41 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 
 internal class StoreXInstance(
     private val application: Application,
     private val prefRef: String,
-    private val serializer: Gson
-) : StoreX, StoreXStorage {
+    private val serializer: Gson,
+    private val writeOrGetAsFileUsingCacheDirectory: Boolean
+) : BaseStoreXInstance(application, prefRef), StoreX {
     internal var listener: SharedPreferences.OnSharedPreferenceChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            StoreXCore.subscriberList().keys.forEach { cacheKey ->
-                StoreXCore.subscriberList()[cacheKey]?.let {
-                    if (cacheKey.contains(key) && it.getKey() == cacheKey) {
-                        it.callback.onDataChanges(it, this@StoreXInstance)
-                    }
+            notifyClients(key)
+        }
+
+    private fun notifyClients(key: String) {
+        StoreXCore.subscriberList().keys.forEach { cacheKey ->
+            StoreXCore.subscriberList()[cacheKey]?.let {
+                if (cacheKey.contains(key) && it.getKey() == cacheKey) {
+                    it.callback.onDataChanges(it, this@StoreXInstance)
                 }
             }
         }
+    }
 
     override fun put(key: String, value: StoreAbleObject): Boolean {
         return try {
             val serializedValue: String = serializer.toJson(value)
             if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
-                doCache(key, serializedValue)
+                doCache(key, serializedValue, writeOrGetAsFileUsingCacheDirectory)
+                notifyClientsManuallyIfNeeded(key)
                 true
             } else {
                 val encryptedValue = EncryptionTool.encrypt(serializedValue)
-                doCache(key, encryptedValue)
+                doCache(key, encryptedValue, writeOrGetAsFileUsingCacheDirectory)
+                notifyClientsManuallyIfNeeded(key)
                 true
             }
         } catch (e: Exception) {
@@ -48,15 +55,21 @@ internal class StoreXInstance(
         }
     }
 
-    override fun put(scope: CoroutineScope, key: String, value: StoreAbleObject) {
+    override fun put(
+        scope: CoroutineScope,
+        key: String,
+        value: StoreAbleObject
+    ) {
         scope.launch {
             try {
                 val serializedValue: String = serializer.toJson(value)
                 if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
-                    doCache(key, serializedValue)
+                    doCache(key, serializedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
                 } else {
                     val encryptedValue = EncryptionTool.encrypt(serializedValue)
-                    doCache(key, encryptedValue)
+                    doCache(key, encryptedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
                 }
             } catch (e: Exception) {
                 throw e
@@ -73,19 +86,21 @@ internal class StoreXInstance(
             try {
                 val serializedValue: String = serializer.toJson(value)
                 if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
-                    doCache(key, serializedValue)
-                    withContext(Dispatchers.Main){
+                    doCache(key, serializedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
+                    withContext(Dispatchers.Main) {
                         callback.onDone(value as T, null)
                     }
                 } else {
                     val encryptedValue = EncryptionTool.encrypt(serializedValue)
-                    doCache(key, encryptedValue)
-                    withContext(Dispatchers.Main){
+                    doCache(key, encryptedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
+                    withContext(Dispatchers.Main) {
                         callback.onDone(value as T, null)
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     callback.onDone(value as T, e)
                 }
             }
@@ -96,35 +111,46 @@ internal class StoreXInstance(
         scope: CoroutineScope,
         key: String,
         value: StoreAbleObject,
-        callback: SaveCallback<T>,
+        callback: SaveCallback<T>
     ) {
         scope.launch {
             try {
                 val serializedValue: String = serializer.toJson(value)
                 if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
-                    doCache(key, serializedValue)
-                    withContext(Dispatchers.Main){
+                    doCache(key, serializedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
+                    withContext(Dispatchers.Main) {
                         callback.onDone(value as T, null)
                     }
                 } else {
                     val encryptedValue = EncryptionTool.encrypt(serializedValue)
-                    doCache(key, encryptedValue)
-                    withContext(Dispatchers.Main){
+                    doCache(key, encryptedValue, writeOrGetAsFileUsingCacheDirectory)
+                    notifyClientsManuallyIfNeeded(key)
+                    withContext(Dispatchers.Main) {
                         callback.onDone(value as T, null)
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     callback.onDone(value as T, e)
                 }
             }
         }
     }
 
+    private fun notifyClientsManuallyIfNeeded(key: String) {
+        if (writeOrGetAsFileUsingCacheDirectory) {
+            notifyClients(key)
+        }
+    }
 
-    override fun <T : StoreAbleObject> get(key: String, objectType: Class<T>): T {
+
+    override fun <T : StoreAbleObject> get(
+        key: String,
+        objectType: Class<T>
+    ): T {
         try {
-            when (val value = getCache(key)) {
+            when (val value = getCache(key, writeOrGetAsFileUsingCacheDirectory)) {
                 null -> {
                     throw NoStoreAbleObjectFound()
                 }
@@ -153,30 +179,35 @@ internal class StoreXInstance(
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                when (val value = getCache(key)) {
+                when (val value = getCache(key, writeOrGetAsFileUsingCacheDirectory)) {
                     null -> {
-                        withContext(Dispatchers.Main){
+                        withContext(Dispatchers.Main) {
                             callback.onSuccess(null, NoStoreAbleObjectFound())
                         }
                     }
                     else -> {
                         when (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
                             true -> {
-                                withContext(Dispatchers.Main){
+                                withContext(Dispatchers.Main) {
                                     callback.onSuccess(serializer.fromJson(value, objectType))
                                 }
                             }
                             else -> {
                                 val decryptedValue = EncryptionTool.decrypt(value)
-                                withContext(Dispatchers.Main){
-                                    callback.onSuccess(serializer.fromJson(decryptedValue, objectType))
+                                withContext(Dispatchers.Main) {
+                                    callback.onSuccess(
+                                        serializer.fromJson(
+                                            decryptedValue,
+                                            objectType
+                                        )
+                                    )
                                 }
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     callback.onSuccess(null, e)
                 }
             }
@@ -187,34 +218,39 @@ internal class StoreXInstance(
         scope: CoroutineScope,
         key: String,
         objectType: Class<T>,
-        callback: GetCallback<T>,
+        callback: GetCallback<T>
     ) {
         scope.launch {
             try {
-                when (val value = getCache(key)) {
+                when (val value = getCache(key, writeOrGetAsFileUsingCacheDirectory)) {
                     null -> {
-                        withContext(Dispatchers.Main){
+                        withContext(Dispatchers.Main) {
                             callback.onSuccess(null, NoStoreAbleObjectFound())
                         }
                     }
                     else -> {
                         when (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
                             true -> {
-                                withContext(Dispatchers.Main){
+                                withContext(Dispatchers.Main) {
                                     callback.onSuccess(serializer.fromJson(value, objectType))
                                 }
                             }
                             else -> {
                                 val decryptedValue = EncryptionTool.decrypt(value)
-                                withContext(Dispatchers.Main){
-                                    callback.onSuccess(serializer.fromJson(decryptedValue, objectType))
+                                withContext(Dispatchers.Main) {
+                                    callback.onSuccess(
+                                        serializer.fromJson(
+                                            decryptedValue,
+                                            objectType
+                                        )
+                                    )
                                 }
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     callback.onSuccess(null, e)
                 }
             }
@@ -252,33 +288,4 @@ internal class StoreXInstance(
         clearAllCache()
     }
 
-
-    // Storage
-    private var mSharedPreferences: SharedPreferences =
-        application.getSharedPreferences(prefRef, Context.MODE_PRIVATE)
-
-    override fun doCache(key: String, value: String): Boolean {
-        getSharedPref().edit().putString(key, value).apply()
-        return true
-    }
-
-    override fun getCache(key: String): String? {
-        return getSharedPref().getString(key, null)
-    }
-
-    override fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        this.mSharedPreferences.registerOnSharedPreferenceChangeListener(listener)
-    }
-
-    override fun clearCacheByKey(key: String) {
-        mSharedPreferences.edit().remove(key).apply()
-    }
-
-    override fun clearAllCache() {
-        mSharedPreferences.edit().clear().apply()
-    }
-
-    private fun getSharedPref(): SharedPreferences {
-        return mSharedPreferences
-    }
 }

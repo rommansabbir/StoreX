@@ -9,7 +9,7 @@ internal interface StoreXStorage {
      * @param data The data which will be stored
      * @param key The key to store the data
      */
-     fun doCache(key: String, value: String): Boolean
+     fun doCache(key: String, value: String, writeToCacheDirectory : Boolean): Boolean
 
     /**
      * Get single stored data.
@@ -18,7 +18,7 @@ internal interface StoreXStorage {
      *
      * @return [String], Data can be null
      */
-     fun getCache(key: String): String?
+     fun getCache(key: String, getFromCacheDirectory : Boolean): String?
 
     /**
      * Register listener to get notified on data changes.
