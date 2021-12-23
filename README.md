@@ -9,7 +9,7 @@
 * Thread Safe
 
 ## How does it work?
-Caching is just a simple key-value pair data saving procedure. StoreX follows the same approach. StoreX uses SharedPreference as storage for caching data. Since we really can't just save the original data because of security issues. StoreX uses AES encryption & decryption behind the scene when you are caching data or fetching data from the cache. Also, you can observer cached data in real-time.
+Caching is just a simple key-value pair data saving procedure. StoreX follows the same approach. StoreX uses SharedPreference/Cache Directory (as File) as storage for caching data. Since we really can't just save the original data because of security issues. StoreX uses AES encryption & decryption behind the scene when you are caching data or fetching data from the cache. Also, you can observer cached data in real-time.
 
 ## Documentation
 
@@ -40,48 +40,43 @@ dependencies {
 
 | Latest Releases
 | ------------- |
-| 1.2.0         |
+| 2.0.0         |
 
 ---
 
 ### What's new in this version?
-- Multiple instance of StoreX with differnet configuration & storage
+- Multiple instance of StoreX with differnet configuration & different storage type support (SharedPref/Cache Storage as File)
 - Added support for custom Coroutine Scopes
 
 ## Initialize
 ````
 // Create multiple identifers
 object StoreXIdentifiers {
-    val mainConfig : StoreXConfig = StoreXConfig("Something_1", "main_pref")
-    val anotherConfig : StoreXConfig = StoreXConfig("Something_2", "secondary_pref")
+    val mainConfig : StoreXConfig = StoreXConfig(
+        "Something_1", 
+        "main_pref",
+        writeOrGetAsFileUsingCacheDirectory= true)
+
+    val anotherConfig : StoreXConfig = StoreXConfig(
+        "Something_2",
+        "secondary_pref",
+        writeOrGetAsFileUsingCacheDirectory= false)
 }
 ````
 
 ````
-// Deprecated. Will be removed in the future version
-StoreXCore.init(this, getString(R.string.app_name))
-
-// New method
 StoreXCore.init(this, mutableListOf(
     StoreXIdentifiers.mainConfig,
-    StoreXIdentifiers.mainConfig,
+    StoreXIdentifiers.anotherConfig,
 ))
 ````
 
 ## How To Access
 ````
-// Deprecated. Will be removed in the future version
-StoreXCore.instance()
-
-// New method
 StoreXCore.instance(configs: StoreXConfig)
 ````
 or else, use the extension function
 ````
-// Deprecated. Will be removed in the future version
-storeXInstance()
-
-// New method
 fun storeXInstance(config: StoreXConfig)
 ````
 which return an instance of `StoreX` [Note:  You must initalize `StoreX` properly before accessing or else it will throw `NotInitializedException`]
@@ -99,13 +94,22 @@ Example:
 `````
 class MyClass:StoreAbleObject()
 `````
-How to save the object (Main Thread)
+
 ````
+//How to save the object (Main Thread) [Deprecated]
 StoreX.put(key: String, value: StoreAbleObject)
+
+//How to save the object (Backed by Coroutine)
+StoreX.put(scope: CoroutineScope, key: String, value: StoreAbleObject)
 ````
+
 or use Async
 ````
+//How to save the object  with Callback [Deprecated]
 StoreX.put<T : StoreAbleObject>(key: String, value: StoreAbleObject, callback: SaveCallback<T>)
+
+//How to save the object with Callback (Backed by Coroutine)
+StoreX.put<T : StoreAbleObject>(scope: CoroutineScope, key: String, value: StoreAbleObject, callback: SaveCallback<T>)
 ````
 
 
@@ -116,7 +120,11 @@ StoreX.get<T : StoreAbleObject>(key: String, objectType: Class<T>): T
 ````
 or use Async
 ````
+//Deprecated
 StoreX.<T : StoreAbleObject>get(key: String, objectType: Class<T>, callback: GetCallback<T>)
+
+//Backed by Coroutine
+StoreX.<T : StoreAbleObject>get(scope: CoroutineScope,key: String, objectType: Class<T>, callback: GetCallback<T>)
 ````
 
 ## How to get notified on data changes?

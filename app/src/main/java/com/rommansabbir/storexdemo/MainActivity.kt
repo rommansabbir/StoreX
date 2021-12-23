@@ -2,13 +2,17 @@ package com.rommansabbir.storexdemo
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.rommansabbir.storex.*
+import com.rommansabbir.storex.StoreX
+import com.rommansabbir.storex.StoreXCore
+import com.rommansabbir.storex.Subscriber
 import com.rommansabbir.storex.callbacks.EventCallback
 import com.rommansabbir.storex.callbacks.GetCallback
 import com.rommansabbir.storex.callbacks.SaveCallback
+import com.rommansabbir.storex.storeXInstance
 
 class MainActivity : AppCompatActivity(), EventCallback {
 
@@ -60,14 +64,17 @@ class MainActivity : AppCompatActivity(), EventCallback {
         }
 
         findViewById<Button>(R.id.am_get_cache_async_btn).setOnClickListener {
-            storeXInstance(StoreXIdentifiers.anotherConfig).get(key, UserData::class.java, object : GetCallback<UserData>{
-                override fun onSuccess(value: UserData?, exception: Exception?) {
-                    findViewById<TextView>(R.id.am_tv_get_cache_async).apply {
-                        text =
-                            "Get Async : ${if (exception == null) value!!.username else exception.message}"
+            storeXInstance(StoreXIdentifiers.anotherConfig).get(
+                key,
+                UserData::class.java,
+                object : GetCallback<UserData> {
+                    override fun onSuccess(value: UserData?, exception: Exception?) {
+                        findViewById<TextView>(R.id.am_tv_get_cache_async).apply {
+                            text =
+                                "Get Async : ${if (exception == null) value!!.username else exception.message}"
+                        }
                     }
-                }
-            })
+                })
         }
 
         val list = arrayListOf(subscriber1)
@@ -75,10 +82,11 @@ class MainActivity : AppCompatActivity(), EventCallback {
         findViewById<Button>(R.id.am_btn_add_observers).setOnClickListener {
 
             StoreXCore.instance(StoreXIdentifiers.anotherConfig).addSubscriber(list)
-            findViewById<TextView>(R.id.am_tv_observers_update).text = "Subscriber Added :: Size :${list.size}"
+            findViewById<TextView>(R.id.am_tv_observers_update).text =
+                "Subscriber Added :: Size :${list.size}"
         }
 
-        findViewById<Button>(R.id.am_remove_observer_btn).setOnClickListener{
+        findViewById<Button>(R.id.am_remove_observer_btn).setOnClickListener {
             storeXInstance(StoreXIdentifiers.anotherConfig).removeSubscriber(list)
             findViewById<TextView>(R.id.am_tv_observer_remove).apply {
                 text = "Removed"
@@ -88,9 +96,35 @@ class MainActivity : AppCompatActivity(), EventCallback {
 //        storeXInstance().removeSubscriber(subscriber1)
     }
 
-    private val callback1 = object : EventCallback{
+    private val callback1 = object : EventCallback {
         override fun onDataChanges(subscriber: Subscriber, instance: StoreX) {
             // Callback return an instance of StoreX and the specific subscriber
+            Log.d("StoreXDemo", "Callback Invoked")
+            if (subscriber.key == key) {
+                instance.get(key, UserData::class.java, object : GetCallback<UserData> {
+                    @SuppressLint("SetTextI18n")
+                    override fun onSuccess(value: UserData?, exception: Exception?) {
+                        exception?.let {
+                            findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                text = exception.message.toString()
+                                Log.e("StoreXDemo", exception.message.toString())
+                            }
+                        } ?: run {
+                            value?.let {
+                                findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                    text = "On Data Found From Cache: ${it.username}"
+                                    Log.d("StoreXDemo", "On Data Found From Cache: ${it.username}")
+                                }
+                            } ?: kotlin.run {
+                                findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                    text = "On Data Found From Cache: null"
+                                    Log.e("StoreXDemo", "On Data Found From Cache: null")
+                                }
+                            }
+                        }
+                    }
+                })
+            }
         }
     }
 

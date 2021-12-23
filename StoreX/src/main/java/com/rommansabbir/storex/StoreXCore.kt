@@ -20,8 +20,10 @@ object StoreXCore {
         instanceStates.clear()
     }
 
-    @Deprecated("Use new method StoreXCore.instance(config: StoreXConfig) to get specific instance",
-        ReplaceWith("StoreXCore.instance(config: StoreXConfig)"))
+    @Deprecated(
+        "Use new method StoreXCore.instance(config: StoreXConfig) to get specific instance",
+        ReplaceWith("StoreXCore.instance(config: StoreXConfig)")
+    )
     @Throws(RuntimeException::class)
     fun instance(): StoreX {
         if (isInitialized) {
@@ -51,15 +53,24 @@ object StoreXCore {
             if (instanceStates[it.uId] != null) {
                 throw DuplicateStoreXConfigException()
             }
-            instanceStates[it.uId] = StoreXState(StoreXInstance(application, it.prefName, gson), it)
+            instanceStates[it.uId] = StoreXState(
+                StoreXInstance(
+                    application,
+                    it.prefName,
+                    gson,
+                    it.writeOrGetAsFileUsingCacheDirectory
+                ), it
+            )
         }
         this.isInitialized = true
     }
 
-    @Deprecated("Use new method StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>) initialize properly",
-        ReplaceWith("StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>)"))
-    fun init(application: Application, prefName: String): StoreXCore {
-        this.instance = StoreXInstance(application, prefName, Gson())
+    @Deprecated(
+        "Use new method StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>) initialize properly",
+        ReplaceWith("StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>)")
+    )
+    fun init(application: Application, prefName: String, writeOrGetAsFileUsingCacheDirectory : Boolean = false): StoreXCore {
+        this.instance = StoreXInstance(application, prefName, Gson(), writeOrGetAsFileUsingCacheDirectory)
         this.instance!!.registerListener(this.instance!!.listener)
         this.isInitialized = true
         return this
