@@ -20,45 +20,63 @@ abstract class BaseStoreXInstance(
         return mSharedPreferences
     }
 
+    protected fun notifyClients(key: String, instance: StoreX) {
+        StoreXCore.subscriberList().keys.forEach { cacheKey ->
+            StoreXCore.subscriberList()[cacheKey]?.let {
+                if (cacheKey.contains(key) && it.getKey() == cacheKey) {
+                    it.callback.onDataChanges(it, instance)
+                }
+            }
+        }
+    }
+
     @Throws(Exception::class)
     override fun doCache(key: String, value: String, writeToCacheDirectory: Boolean): Boolean {
         if (writeToCacheDirectory) {
-            //Create new file
-            val file = File(application.cacheDir, key)
-            //If file already exists, delete the previous one and store the new one
-            if (file.exists()) {
-                file.delete()
-            }
-            file.createNewFile()
-
-            //Write the file to the cache dir
-            val fos = FileOutputStream(file)
-            fos.write(value.toByteArray(Charset.defaultCharset()))
-            fos.flush()
-            fos.close()
-            return true
+            return doCacheToCacheDirectory(key, value)
         }
         getSharedPref().edit().putString(key, value).apply()
+        return true
+    }
+
+    private fun doCacheToCacheDirectory(key: String, value: String): Boolean {
+        //Create new file
+        val file = File(application.cacheDir, key)
+        //If file already exists, delete the previous one and store the new one
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
+
+        //Write the file to the cache dir
+        val fos = FileOutputStream(file)
+        fos.write(value.toByteArray(Charset.defaultCharset()))
+        fos.flush()
+        fos.close()
         return true
     }
 
     @Throws(Exception::class)
     override fun getCache(key: String, getFromCacheDirectory: Boolean): String? {
         if (getFromCacheDirectory) {
-            val file = File(application.cacheDir, key)
-            //If file exists decode the file to String else return null
-            return if (file.exists()) {
-                val content: StringBuilder = java.lang.StringBuilder(file.length().toInt())
-                val scanner = Scanner(file)
-                while (scanner.hasNext()) {
-                    content.append(scanner.nextLine() + System.lineSeparator())
-                }
-                content.toString()
-            } else {
-                null
-            }
+            return getCacheFromCacheDirectory(key)
         }
         return getSharedPref().getString(key, null)
+    }
+
+    private fun getCacheFromCacheDirectory(key: String): String? {
+        val file = File(application.cacheDir, key)
+        //If file exists decode the file to String else return null
+        return if (file.exists()) {
+            val content: StringBuilder = java.lang.StringBuilder(file.length().toInt())
+            val scanner = Scanner(file)
+            while (scanner.hasNext()) {
+                content.append(scanner.nextLine() + System.lineSeparator())
+            }
+            content.toString()
+        } else {
+            null
+        }
     }
 
     override fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {

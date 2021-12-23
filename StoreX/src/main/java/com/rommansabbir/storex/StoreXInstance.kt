@@ -24,18 +24,9 @@ internal class StoreXInstance(
 ) : BaseStoreXInstance(application, prefRef), StoreX {
     internal var listener: SharedPreferences.OnSharedPreferenceChangeListener =
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            notifyClients(key)
+            notifyClients(key, this)
         }
 
-    private fun notifyClients(key: String) {
-        StoreXCore.subscriberList().keys.forEach { cacheKey ->
-            StoreXCore.subscriberList()[cacheKey]?.let {
-                if (cacheKey.contains(key) && it.getKey() == cacheKey) {
-                    it.callback.onDataChanges(it, this@StoreXInstance)
-                }
-            }
-        }
-    }
 
     override fun put(key: String, value: StoreAbleObject): Boolean {
         return try {
@@ -140,7 +131,7 @@ internal class StoreXInstance(
 
     private fun notifyClientsManuallyIfNeeded(key: String) {
         if (writeOrGetAsFileUsingCacheDirectory) {
-            notifyClients(key)
+            notifyClients(key, this)
         }
     }
 
@@ -170,7 +161,6 @@ internal class StoreXInstance(
             throw e
         }
     }
-
 
     override fun <T : StoreAbleObject> get(
         key: String,
