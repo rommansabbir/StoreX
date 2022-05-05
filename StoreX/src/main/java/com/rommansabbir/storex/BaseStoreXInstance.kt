@@ -79,6 +79,10 @@ abstract class BaseStoreXInstance(
         }
     }
 
+    internal fun clearCacheFromCacheDir(key: String) {
+        application.cacheDir?.listFiles()?.find { it.name == key }?.delete()
+    }
+
     override fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         this.mSharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }
