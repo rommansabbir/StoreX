@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
 
 
 internal class StoreXInstance(
@@ -254,7 +253,7 @@ internal class StoreXInstance(
         StoreXCore.addSubscriber(subscriber)
     }
 
-    override fun addSubscriber(subscribers: ArrayList<Subscriber>) {
+    override fun addSubscriber(subscribers: List<Subscriber>) {
         subscribers.forEach {
             addSubscriber(it)
         }
@@ -264,14 +263,23 @@ internal class StoreXInstance(
         StoreXCore.removeSubscriber(subscriber)
     }
 
-    override fun removeSubscriber(subscribers: ArrayList<Subscriber>) {
+    override fun removeSubscriber(subscribers: List<Subscriber>) {
         subscribers.forEach {
             removeSubscriber(it)
         }
     }
 
     override fun remove(key: String) {
-        clearCacheByKey(key)
+        if (writeOrGetAsFileUsingCacheDirectory) {
+            clearCacheFromCacheDir(key)
+        } else {
+            clearCacheByKey(key)
+        }
+    }
+
+    override fun removeFromCacheDir(key: List<String>): Boolean {
+        key.forEach { clearCacheFromCacheDir(it) }
+        return true
     }
 
     override fun removeAll() {
