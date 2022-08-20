@@ -1,4 +1,4 @@
 package com.rommansabbir.storex.execptions
 
-class InvalidEncryptionKeyException(@JvmField override val message: String = "Invalid encryption key") :
+class InvalidEncryptionKeyException(override val message: String = "Invalid encryption key") :
     Exception(message)
