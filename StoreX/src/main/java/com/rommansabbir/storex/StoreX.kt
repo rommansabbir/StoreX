@@ -7,10 +7,24 @@ import kotlinx.coroutines.CoroutineScope
 interface StoreX {
     fun put(key: String, value: StoreAbleObject): Boolean
 
+    @Deprecated(
+        "Use new suspended API",
+        replaceWith = ReplaceWith("StoreXCore.instance(config).putS(key, value)")
+    )
     fun put(scope: CoroutineScope, key: String, value: StoreAbleObject)
 
+    suspend fun putS(key: String, value: StoreAbleObject): Boolean
+
+    @Deprecated(
+        "Use new suspended API",
+        replaceWith = ReplaceWith("StoreXCore.instance(config).putS(key, value)")
+    )
     fun <T : StoreAbleObject> put(key: String, value: StoreAbleObject, callback: SaveCallback<T>)
 
+    @Deprecated(
+        "Use new suspended API",
+        replaceWith = ReplaceWith("StoreXCore.instance(config).putS(key, value)")
+    )
     fun <T : StoreAbleObject> put(
         scope: CoroutineScope,
         key: String,

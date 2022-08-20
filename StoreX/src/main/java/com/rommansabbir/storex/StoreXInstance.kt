@@ -26,23 +26,15 @@ internal class StoreXInstance(
             notifyClients(key, this)
         }
 
-
     override fun put(key: String, value: StoreAbleObject): Boolean {
-        return try {
-            val serializedValue: String = serializer.toJson(value)
-            if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) {
-                doCache(key, serializedValue, writeOrGetAsFileUsingCacheDirectory)
-                notifyClientsManuallyIfNeeded(key)
-                true
-            } else {
-                val encryptedValue = EncryptionTool.encrypt(serializedValue)
-                doCache(key, encryptedValue, writeOrGetAsFileUsingCacheDirectory)
-                notifyClientsManuallyIfNeeded(key)
-                true
-            }
-        } catch (e: Exception) {
-            throw e
-        }
+        val serializedValue: String = serializer.toJson(value)
+        val valueToBeSaved =
+            if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) serializedValue else EncryptionTool.encrypt(
+                serializedValue
+            )
+        doCache(key, valueToBeSaved, writeOrGetAsFileUsingCacheDirectory)
+        notifyClientsManuallyIfNeeded(key)
+        return true
     }
 
     override fun put(
@@ -66,6 +58,19 @@ internal class StoreXInstance(
             }
         }
     }
+
+
+    override suspend fun putS(key: String, value: StoreAbleObject): Boolean =
+        withContext(Dispatchers.IO) {
+            val serializedValue: String = serializer.toJson(value)
+            val valueToBeSaved =
+                if (StoreXCore.encryptionKey == StoreXCore.NO_ENCRYPTION) serializedValue else EncryptionTool.encrypt(
+                    serializedValue
+                )
+            doCache(key, valueToBeSaved, writeOrGetAsFileUsingCacheDirectory)
+            notifyClientsManuallyIfNeeded(key)
+            return@withContext true
+        }
 
     override fun <T : StoreAbleObject> put(
         key: String,
