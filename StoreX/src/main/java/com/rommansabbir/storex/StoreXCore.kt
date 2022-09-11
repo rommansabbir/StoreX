@@ -9,7 +9,6 @@ import com.rommansabbir.storex.execptions.NotInitializedException
 
 object StoreXCore {
     private var isInitialized: Boolean = false
-    private var instance: StoreXInstance? = null
 
     private var instanceStates: HashMap<String, StoreXState> = HashMap()
 
@@ -18,19 +17,6 @@ object StoreXCore {
      */
     fun clearAllStates() {
         instanceStates.clear()
-    }
-
-    @Deprecated(
-        "Use new method StoreXCore.instance(config: StoreXConfig) to get specific instance",
-        ReplaceWith("StoreXCore.instance(config: StoreXConfig)")
-    )
-    @Throws(RuntimeException::class)
-    fun instance(): StoreX {
-        if (isInitialized) {
-            return instance!!
-        } else {
-            throw NotInitializedException()
-        }
     }
 
     @Throws(RuntimeException::class)
@@ -63,17 +49,6 @@ object StoreXCore {
             )
         }
         this.isInitialized = true
-    }
-
-    @Deprecated(
-        "Use new method StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>) initialize properly",
-        ReplaceWith("StoreXCore.init(application: Application, configs: MutableList<StoreXConfig>)")
-    )
-    fun init(application: Application, prefName: String, writeOrGetAsFileUsingCacheDirectory : Boolean = false): StoreXCore {
-        this.instance = StoreXInstance(application, prefName, Gson(), writeOrGetAsFileUsingCacheDirectory)
-        this.instance!!.registerListener(this.instance!!.listener)
-        this.isInitialized = true
-        return this
     }
 
     @Throws(RuntimeException::class)
