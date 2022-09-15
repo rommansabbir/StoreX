@@ -6,12 +6,12 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-fun StoreAbleObject.toJson(): String = gson.toJson(this)
+internal fun StoreAbleObject.toJson(): String = gson.toJson(this)
 
-fun <T : StoreAbleObject> String.toStoreAbleObject(clazz: Class<T>): T =
+internal fun <T : StoreAbleObject> String.toStoreAbleObject(clazz: Class<T>): T =
     gson.fromJson(this, clazz)
 
-inline fun String.isJSONValid(crossinline callback: (Boolean) -> Unit={}): Boolean {
+internal inline fun String.isJSONValid(crossinline callback: (Boolean) -> Unit = {}): Boolean {
     try {
         JSONObject(this)
     } catch (ex: JSONException) {
