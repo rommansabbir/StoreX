@@ -1,18 +1,18 @@
 package com.rommansabbir.storexdemo
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.rommansabbir.storex.StoreX
-import com.rommansabbir.storex.StoreXCore
-import com.rommansabbir.storex.Subscriber
+import com.rommansabbir.storex.*
 import com.rommansabbir.storex.callbacks.EventCallback
 import com.rommansabbir.storex.callbacks.GetCallback
 import com.rommansabbir.storex.callbacks.SaveCallback
-import com.rommansabbir.storex.storeXInstance
+import com.rommansabbir.storex.v2.*
+import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity(), EventCallback {
 
@@ -23,13 +23,33 @@ class MainActivity : AppCompatActivity(), EventCallback {
 
     private var key = "key"
 
+    private lateinit var objectWriter: ObjectWriter
+
+    private lateinit var testConfig: StoreXSmartConfig<StoreAbleObject>
+
+    fun getTestCacheDirConfig(context: WeakReference<Context>) =
+        StoreXSmartConfig(context, "testfile.file", StoreAbleObject(), StoreXCachingStrategy.CacheDir())
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        objectWriter = ObjectWriterImpl()
+        testConfig = getTestCacheDirConfig(WeakReference(this))
+        objectWriter.writeObject(
+            testConfig.getCacheDir(),
+            testConfig.fileName,
+            testConfig.xObject.toJson()
+        )
+        val writtenObject =
+            objectWriter.getWrittenObject(testConfig.getCacheDir(), testConfig.fileName)
+        val storedObject = writtenObject.toStoreAbleObject(StoreAbleObject::class.java)
+        val result =
+            objectWriter.deleteWrittenObject(testConfig.getCacheDir(), testConfig.fileName)
+        println()
 
         //
-        findViewById<Button>(R.id.am_cache_btn).setOnClickListener {
+/*        findViewById<Button>(R.id.am_cache_btn).setOnClickListener {
             val model = UserData().apply {
                 username = "Cached on Main Thread: Signature :${this.objectId}"
             }
@@ -43,15 +63,17 @@ class MainActivity : AppCompatActivity(), EventCallback {
         }
 
         findViewById<Button>(R.id.am_cache_asnyc_btn).setOnClickListener {
-            StoreXCore.instance(StoreXIdentifiers.anotherConfig).put(key, UserData().apply {
-                username = "Cached Asyc: Signature :${this.objectId}"
-            }, object : SaveCallback<UserData> {
+            object : SaveCallback<UserData> {
                 override fun onDone(value: UserData, exception: Exception?) {
                     findViewById<TextView>(R.id.am_tv_do_cache_async).apply {
                         text =
                             "Cached Async : ${if (exception == null) value.username else exception.message}"
                     }
                 }
+            }
+            StoreXCore.instance(StoreXIdentifiers.anotherConfig)
+            StoreXCore.instance(config).putS(key, UserData().apply {
+                username = "Cached Asyc: Signature :${this.objectId}"
             })
         }
 
@@ -92,64 +114,68 @@ class MainActivity : AppCompatActivity(), EventCallback {
                 text = "Removed"
             }
             findViewById<TextView>(R.id.am_tv_observers_update).text = ""
-        }
+        }*/
 //        storeXInstance().removeSubscriber(subscriber1)
     }
 
-    private val callback1 = object : EventCallback {
-        override fun onDataChanges(subscriber: Subscriber, instance: StoreX) {
-            // Callback return an instance of StoreX and the specific subscriber
-            Log.d("StoreXDemo", "Callback Invoked")
-            if (subscriber.key == key) {
-                instance.get(key, UserData::class.java, object : GetCallback<UserData> {
-                    @SuppressLint("SetTextI18n")
-                    override fun onSuccess(value: UserData?, exception: Exception?) {
-                        exception?.let {
-                            findViewById<TextView>(R.id.am_tv_observer_remove).apply {
-                                text = exception.message.toString()
-                                Log.e("StoreXDemo", exception.message.toString())
-                            }
-                        } ?: run {
-                            value?.let {
-                                findViewById<TextView>(R.id.am_tv_observer_remove).apply {
-                                    text = "On Data Found From Cache: ${it.username}"
-                                    Log.d("StoreXDemo", "On Data Found From Cache: ${it.username}")
-                                }
-                            } ?: kotlin.run {
-                                findViewById<TextView>(R.id.am_tv_observer_remove).apply {
-                                    text = "On Data Found From Cache: null"
-                                    Log.e("StoreXDemo", "On Data Found From Cache: null")
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-        }
-    }
-
-
-    //Create a new subscriber by providing the `Key`, `Observer ID (Must be unique)` and the `Callback`
-    private var subscriber1 = Subscriber(key, OBSERVER_ID_1, callback1)
-    private var subscriber2 = Subscriber(key, OBSERVER_ID_2, this)
-    private var subscriber3 = Subscriber(key, OBSERVER_ID_3, this)
-
     override fun onDataChanges(subscriber: Subscriber, instance: StoreX) {
-        instance.get(subscriber.key, UserData::class.java, object : GetCallback<UserData> {
-            override fun onSuccess(value: UserData?, exception: Exception?) {
-                var temp = findViewById<TextView>(R.id.am_tv_observers_update).text.toString()
-                if (exception == null) {
-                    temp += "\nSubscriber ID:  ${subscriber.subscriberID} :: ${value!!.username} :: ${value.objectId} :: ${System.currentTimeMillis()}"
-                    findViewById<TextView>(R.id.am_tv_observers_update).apply {
-                        text = temp
-                    }
-                } else {
-                    temp += "\nSubscriber ID:  ${subscriber.subscriberID} :: ${exception.message} :: ${System.currentTimeMillis()}"
-                    findViewById<TextView>(R.id.am_tv_observers_update).apply {
-                        text = temp
-                    }
-                }
-            }
-        })
+
     }
+
+    /* private val callback1 = object : EventCallback {
+         override fun onDataChanges(subscriber: Subscriber, instance: StoreX) {
+             // Callback return an instance of StoreX and the specific subscriber
+             Log.d("StoreXDemo", "Callback Invoked")
+             if (subscriber.key == key) {
+                 instance.get(key, UserData::class.java, object : GetCallback<UserData> {
+                     @SuppressLint("SetTextI18n")
+                     override fun onSuccess(value: UserData?, exception: Exception?) {
+                         exception?.let {
+                             findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                 text = exception.message.toString()
+                                 Log.e("StoreXDemo", exception.message.toString())
+                             }
+                         } ?: run {
+                             value?.let {
+                                 findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                     text = "On Data Found From Cache: ${it.username}"
+                                     Log.d("StoreXDemo", "On Data Found From Cache: ${it.username}")
+                                 }
+                             } ?: kotlin.run {
+                                 findViewById<TextView>(R.id.am_tv_observer_remove).apply {
+                                     text = "On Data Found From Cache: null"
+                                     Log.e("StoreXDemo", "On Data Found From Cache: null")
+                                 }
+                             }
+                         }
+                     }
+                 })
+             }
+         }
+     }
+
+
+     //Create a new subscriber by providing the `Key`, `Observer ID (Must be unique)` and the `Callback`
+     private var subscriber1 = Subscriber(key, OBSERVER_ID_1, callback1)
+     private var subscriber2 = Subscriber(key, OBSERVER_ID_2, this)
+     private var subscriber3 = Subscriber(key, OBSERVER_ID_3, this)
+
+     override fun onDataChanges(subscriber: Subscriber, instance: StoreX) {
+         instance.get(subscriber.key, UserData::class.java, object : GetCallback<UserData> {
+             override fun onSuccess(value: UserData?, exception: Exception?) {
+                 var temp = findViewById<TextView>(R.id.am_tv_observers_update).text.toString()
+                 if (exception == null) {
+                     temp += "\nSubscriber ID:  ${subscriber.subscriberID} :: ${value!!.username} :: ${value.objectId} :: ${System.currentTimeMillis()}"
+                     findViewById<TextView>(R.id.am_tv_observers_update).apply {
+                         text = temp
+                     }
+                 } else {
+                     temp += "\nSubscriber ID:  ${subscriber.subscriberID} :: ${exception.message} :: ${System.currentTimeMillis()}"
+                     findViewById<TextView>(R.id.am_tv_observers_update).apply {
+                         text = temp
+                     }
+                 }
+             }
+         })
+     }*/
 }
