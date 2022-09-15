@@ -9,7 +9,7 @@ import java.util.*
 class ObjectWriterImpl : ObjectWriter {
     override fun writeObject(path: String, fileName: String, objectToBeSaved: String): Boolean {
         try {
-            val file = File(path, "${fileName}.obj")
+            val file = File(path, "${fileName}.storexfile")
             if (file.exists()) {
                 FileUtils.deleteQuietly(file)
             }
@@ -27,7 +27,7 @@ class ObjectWriterImpl : ObjectWriter {
 
     override fun getWrittenObject(path: String, fileName: String): String {
         try {
-            val file = File(path, "${fileName}.obj")
+            val file = File(path, "${fileName}.storexfile")
             val content: StringBuilder = java.lang.StringBuilder(file.length().toInt())
             val scanner = Scanner(file)
             while (scanner.hasNext()) {
@@ -42,7 +42,7 @@ class ObjectWriterImpl : ObjectWriter {
 
     override fun deleteWrittenObject(path: String, fileName: String): Boolean {
         try {
-            val file = File("${path}/${fileName}.obj")
+            val file = File("${path}/${fileName}.storexfile")
             if (file.isDirectory) {
                 FileUtils.deleteDirectory(file)
                 return true
