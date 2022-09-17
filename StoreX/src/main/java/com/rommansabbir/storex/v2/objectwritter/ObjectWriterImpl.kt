@@ -1,17 +1,28 @@
 package com.rommansabbir.storex.v2.objectwritter
 
 import com.rommansabbir.storex.FileUtils
+import com.rommansabbir.storex.v2.exceptions.FileExistsException
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.*
 
 class ObjectWriterImpl : ObjectWriter {
-    override fun writeObject(path: String, fileName: String, objectToBeSaved: String): Boolean {
+    override fun writeObject(
+        path: String,
+        fileName: String,
+        objectToBeSaved: String,
+        overwriteExistingFile: Boolean
+    ): Boolean {
         try {
             val file = File(path, "${fileName}.storexfile")
             if (file.exists()) {
-                FileUtils.deleteQuietly(file)
+                if (overwriteExistingFile) {
+                    FileUtils.deleteQuietly(file)
+                } else {
+                    val message = "File already exist with the same File Name : $fileName"
+                    throw FileExistsException(message)
+                }
             }
             file.createNewFile()
             val fos = FileOutputStream(file)
@@ -20,7 +31,8 @@ class ObjectWriterImpl : ObjectWriter {
             fos.close()
             return true
         } catch (e: Exception) {
-            val message = "Failed to write the object : '$fileName' to path : '$path'"
+            val message =
+                "Failed to write the object : '$fileName' to path : '$path'. Actual reason: ${e.message}"
             throw Exception(message)
         }
     }
@@ -35,7 +47,8 @@ class ObjectWriterImpl : ObjectWriter {
             }
             return content.toString()
         } catch (e: Exception) {
-            val message = "Failed to get written object : '$fileName from path' : '$path'"
+            val message =
+                "Failed to get written object : '$fileName from path' : '$path'. Actual reason: ${e.message}"
             throw Exception(message)
         }
     }
@@ -50,7 +63,8 @@ class ObjectWriterImpl : ObjectWriter {
             FileUtils.deleteQuietly(file)
             return true
         } catch (e: Exception) {
-            val message = "Failed to delete written object : '$fileName' from path : '$path'"
+            val message =
+                "Failed to delete written object : '$fileName' from path : '$path'. Actual reason: ${e.message}"
             throw Exception(message)
         }
     }
