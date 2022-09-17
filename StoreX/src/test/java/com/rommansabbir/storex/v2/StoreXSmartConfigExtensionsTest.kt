@@ -1,5 +1,6 @@
 package com.rommansabbir.storex.v2
 
+import com.rommansabbir.storex.v2.extensions.getCacheDir
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

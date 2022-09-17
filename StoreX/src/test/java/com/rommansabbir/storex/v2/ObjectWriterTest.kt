@@ -1,6 +1,10 @@
 package com.rommansabbir.storex.v2
 
 import com.rommansabbir.storex.StoreAbleObject
+import com.rommansabbir.storex.v2.config.StoreXSmartConfig
+import com.rommansabbir.storex.v2.extensions.getCacheDir
+import com.rommansabbir.storex.v2.extensions.toJson
+import com.rommansabbir.storex.v2.extensions.toStoreAbleObject
 import com.rommansabbir.storex.v2.objectwritter.ObjectWriter
 import com.rommansabbir.storex.v2.objectwritter.ObjectWriterImpl
 import org.junit.Before
@@ -25,7 +29,8 @@ class ObjectWriterTest : BaseTestClass() {
         val result = objectWriter.writeObject(
             testConfig.getCacheDir(),
             testConfig.fileName,
-            testConfig.xObject.toJson()
+            testConfig.xObject.toJson(),
+            true
         )
         assert(result)
     }

@@ -1,6 +1,7 @@
 package com.rommansabbir.storex.v2
 
 import com.rommansabbir.storex.StoreAbleObject
+import com.rommansabbir.storex.v2.config.StoreXSmartConfig
 import com.rommansabbir.storex.v2.smartstorex.SmartStoreX
 import com.rommansabbir.storex.v2.smartstorex.SmartStoreXImpl
 import org.junit.Before
@@ -53,19 +54,4 @@ class SmartStoreXTest : BaseTestClass() {
         val isDeleted = smartStoreX.delete(filesDirConfig)
         assert(isDeleted)
     }
-
-/*    @Test
-    fun `save a test object to internal external dir, get stored object and delete the object finally`() {
-        val uid = externalDirConfig.xObject.objectId
-        val result = smartStoreX.set(externalDirConfig)
-        assert(result)
-        val returnedResult = smartStoreX.get(
-            externalDirConfig,
-            StoreAbleObject::class.java
-        )
-        assert(returnedResult is StoreAbleObject)
-        assert(returnedResult?.objectId == uid)
-        val isDeleted = smartStoreX.delete(externalDirConfig)
-        assert(isDeleted)
-    }*/
 }

@@ -1,6 +1,9 @@
 package com.rommansabbir.storex.v2
 
 import com.rommansabbir.storex.StoreAbleObject
+import com.rommansabbir.storex.v2.extensions.isJSONValid
+import com.rommansabbir.storex.v2.extensions.toJson
+import com.rommansabbir.storex.v2.extensions.toStoreAbleObject
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
