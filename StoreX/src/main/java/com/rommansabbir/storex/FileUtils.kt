@@ -21,13 +21,24 @@ object FileUtils {
      * @param directoryName given directory name.
      * @param files where all the files will be stored.
      */
-    fun getAllNestedFiles(directoryName: String, files: MutableList<File?>) {
+    fun getAllNestedFiles(
+        directoryName: String,
+        files: MutableList<File?>,
+        extension: String? = null
+    ) {
         val directoryItems = File(directoryName).listFiles()
         if (directoryItems != null) for (item: File in directoryItems) {
             if (item.isFile) {
-                files.add(item)
+                if (extension?.isNotEmpty() == true) {
+                    val temp: String = item.path.substring(item.path.lastIndexOf("."))
+                    if (temp.equals(extension, true)) {
+                        files.add(item)
+                    }
+                } else {
+                    files.add(item)
+                }
             } else if (item.isDirectory) {
-                getAllNestedFiles(item.absolutePath, files)
+                getAllNestedFiles(item.absolutePath, files, extension)
             }
         }
     }
