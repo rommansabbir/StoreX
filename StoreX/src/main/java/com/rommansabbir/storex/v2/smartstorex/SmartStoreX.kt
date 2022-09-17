@@ -1,7 +1,7 @@
 package com.rommansabbir.storex.v2.smartstorex
 
 import com.rommansabbir.storex.StoreAbleObject
-import com.rommansabbir.storex.v2.StoreXSmartConfig
+import com.rommansabbir.storex.v2.config.StoreXSmartConfig
 
 interface SmartStoreX {
     @Throws(Exception::class)

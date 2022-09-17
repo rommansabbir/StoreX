@@ -1,16 +1,23 @@
 package com.rommansabbir.storex.v2.smartstorex
 
 import com.rommansabbir.storex.StoreAbleObject
-import com.rommansabbir.storex.v2.*
+import com.rommansabbir.storex.v2.config.StoreXSmartConfig
+import com.rommansabbir.storex.v2.extensions.*
 import com.rommansabbir.storex.v2.objectwritter.ObjectWriter
 import com.rommansabbir.storex.v2.objectwritter.ObjectWriterImpl
+import com.rommansabbir.storex.v2.strategy.StoreXCachingStrategy
 
 class SmartStoreXImpl : SmartStoreX {
     private var objectWriter: ObjectWriter = ObjectWriterImpl()
 
     override fun <T : StoreAbleObject> set(config: StoreXSmartConfig<T>): Boolean {
         val path = getPath(config)
-        return objectWriter.writeObject(path, config.fileName, config.xObject.toJson())
+        return objectWriter.writeObject(
+            path,
+            config.fileName,
+            config.xObject.toJson(),
+            config.overwriteExistingFile
+        )
     }
 
     override fun <T : StoreAbleObject> get(
@@ -41,8 +48,8 @@ class SmartStoreXImpl : SmartStoreX {
                 is StoreXCachingStrategy.FilesDir -> {
                     tag = "FilesDir";config.getFilesDir()
                 }
-                is StoreXCachingStrategy.ExternalDir -> {
-                    tag = "ExternalDir";config.getExternalDir()
+                is StoreXCachingStrategy.OtherDir -> {
+                    tag = "ExternalDir";config.getOtherDir()
                 }
             }
         } catch (e: Exception) {
