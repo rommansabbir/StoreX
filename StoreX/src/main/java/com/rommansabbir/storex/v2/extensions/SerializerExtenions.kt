@@ -1,4 +1,4 @@
-package com.rommansabbir.storex.v2
+package com.rommansabbir.storex.v2.extensions
 
 import com.rommansabbir.storex.StoreAbleObject
 import com.rommansabbir.storex.gson
@@ -6,12 +6,12 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-internal fun StoreAbleObject.toJson(): String = gson.toJson(this)
+fun StoreAbleObject.toJson(): String = gson.toJson(this)
 
-internal fun <T : StoreAbleObject> String.toStoreAbleObject(clazz: Class<T>): T =
+fun <T : StoreAbleObject> String.toStoreAbleObject(clazz: Class<T>): T =
     gson.fromJson(this, clazz)
 
-internal inline fun String.isJSONValid(crossinline callback: (Boolean) -> Unit = {}): Boolean {
+inline fun String.isJSONValid(crossinline callback: (Boolean) -> Unit = {}): Boolean {
     try {
         JSONObject(this)
     } catch (ex: JSONException) {
