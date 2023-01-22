@@ -8,16 +8,19 @@ import com.rommansabbir.storex.v2.objectwritter.ObjectWriterImpl
 import com.rommansabbir.storex.v2.strategy.StoreXCachingStrategy
 
 class SmartStoreXImpl : SmartStoreX {
-    private var objectWriter: ObjectWriter = ObjectWriterImpl()
+
+    private val objectWriter: ObjectWriter by lazy { ObjectWriterImpl() }
 
     override fun <T : StoreAbleObject> set(config: StoreXSmartConfig<T>): Boolean {
         val path = getPath(config)
-        return objectWriter.writeObject(
+        val hasWritten = objectWriter.writeObject(
             path,
             config.fileName,
             config.xObject.toJson(),
             config.overwriteExistingFile
         )
+        SmartStoreX.subscriberList[config.fileName]?.onCallback(config.fileName, config.xObject)
+        return hasWritten
     }
 
     override fun <T : StoreAbleObject> get(
@@ -35,25 +38,25 @@ class SmartStoreXImpl : SmartStoreX {
     override fun <T : StoreAbleObject> delete(config: StoreXSmartConfig<T>): Boolean {
         val path = getPath(config)
         objectWriter.deleteWrittenObject(path, config.fileName)
+        SmartStoreX.subscriberList[config.fileName]?.onDelete(config.fileName, config.xObject)
         return true
     }
 
     private fun <T : StoreAbleObject> getPath(config: StoreXSmartConfig<T>): String {
-        var tag: String = ""
         try {
             return when (config.storeXCachingStrategy) {
                 is StoreXCachingStrategy.CacheDir -> {
-                    tag = "CacheDir"; config.getCacheDir()
+                    config.getCacheDir()
                 }
                 is StoreXCachingStrategy.FilesDir -> {
-                    tag = "FilesDir";config.getFilesDir()
+                    config.getFilesDir()
                 }
                 is StoreXCachingStrategy.OtherDir -> {
-                    tag = "ExternalDir";config.getOtherDir()
+                    config.getOtherDir()
                 }
             }
         } catch (e: Exception) {
-            throw Exception("Failed to get path for :'${tag}'")
+            throw Exception("Failed to get path for :'${StoreXCachingStrategy.getTag(config.storeXCachingStrategy)}'")
         }
     }
 
