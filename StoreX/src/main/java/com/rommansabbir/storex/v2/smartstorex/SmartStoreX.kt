@@ -6,10 +6,10 @@ import com.rommansabbir.storex.v2.subscription.StoreXSubscription
 
 interface SmartStoreX {
     @Throws(Exception::class)
-    fun <T : StoreAbleObject> set(config: StoreXSmartConfig<T>): Boolean
+    fun <T : StoreAbleObject> write(config: StoreXSmartConfig<T>): Boolean
 
     @Throws(Exception::class)
-    fun <T : StoreAbleObject> get(config: StoreXSmartConfig<T>, clazzName: Class<T>): T?
+    fun <T : StoreAbleObject> read(config: StoreXSmartConfig<T>, clazzName: Class<T>): T?
 
     @Throws(Exception::class)
     fun <T : StoreAbleObject> delete(config: StoreXSmartConfig<T>): Boolean

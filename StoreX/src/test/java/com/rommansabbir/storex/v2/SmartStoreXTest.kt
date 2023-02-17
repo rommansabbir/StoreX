@@ -42,9 +42,9 @@ class SmartStoreXTest : BaseTestClass() {
                 }
             })
         val uid = cacheDirConfig.xObject.objectId
-        val result = smartStoreX.set(cacheDirConfig)
+        val result = smartStoreX.write(cacheDirConfig)
         assert(result)
-        val returnedResult = smartStoreX.get(
+        val returnedResult = smartStoreX.read(
             cacheDirConfig,
             StoreAbleObject::class.java
         )
@@ -72,9 +72,9 @@ class SmartStoreXTest : BaseTestClass() {
                 }
             })
         val uid = filesDirConfig.xObject.objectId
-        val result = smartStoreX.set(filesDirConfig)
+        val result = smartStoreX.write(filesDirConfig)
         assert(result)
-        val returnedResult = smartStoreX.get(
+        val returnedResult = smartStoreX.read(
             filesDirConfig,
             StoreAbleObject::class.java
         )

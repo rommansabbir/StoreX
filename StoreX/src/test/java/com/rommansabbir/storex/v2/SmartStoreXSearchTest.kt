@@ -38,8 +38,8 @@ class SmartStoreXSearchTest : BaseTestClass() {
             StoreAbleString("Hello..."),
             StoreXCachingStrategy.FilesDir
         )
-        smartStoreX.set(cacheFileConfig)
-        smartStoreX.set(filesFileConfig)
+        smartStoreX.write(cacheFileConfig)
+        smartStoreX.write(filesFileConfig)
         val key = smartStoreXSearch.getAllKeys(WeakReference(context))
         assert(key.contains("test_file"))
         assert(key.contains("test_file_1"))

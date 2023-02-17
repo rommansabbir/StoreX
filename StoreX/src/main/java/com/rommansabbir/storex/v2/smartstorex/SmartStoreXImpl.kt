@@ -11,7 +11,7 @@ internal class SmartStoreXImpl : SmartStoreX {
 
     private val objectWriter: ObjectWriter by lazy { ObjectWriterImpl() }
 
-    override fun <T : StoreAbleObject> set(config: StoreXSmartConfig<T>): Boolean {
+    override fun <T : StoreAbleObject> write(config: StoreXSmartConfig<T>): Boolean {
         val path = getPath(config)
         val hasWritten = objectWriter.writeObject(
             path,
@@ -23,7 +23,7 @@ internal class SmartStoreXImpl : SmartStoreX {
         return hasWritten
     }
 
-    override fun <T : StoreAbleObject> get(
+    override fun <T : StoreAbleObject> read(
         config: StoreXSmartConfig<T>,
         clazzName: Class<T>
     ): T? {
