@@ -3,15 +3,15 @@
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#getting-started-quick)
 
  <p align="center">
-    <a href="https://android-arsenal.com/details/1/8362"><img alt="Maintained" src="https://img.shields.io/badge/Android%20Arsenal-NetworkX-green.svg?style=flat" height="20"/></a>
+    <a href="https://android-arsenal.com/details/1/8362"><img alt="Maintained" src="https://img.shields.io/badge/Android%20Arsenal-StoreX-green.svg?style=flat" height="20"/></a>
 </p>
 
  <p align="center">
-     <a href="https://github.com/rommansabbir/NetworkX"><img alt="Maintained" src="https://img.shields.io/badge/Maintained_Actively%3F-Yes-green.svg" height="20"/></a>
+     <a href="https://github.com/rommansabbir/StoreX"><img alt="Maintained" src="https://img.shields.io/badge/Maintained_Actively%3F-Yes-green.svg" height="20"/></a>
 </p>
 
  <p align="center">
-     <a href="https://jitpack.io/#rommansabbir/NetworkX"><img alt="JitPack" src="https://img.shields.io/badge/JitPack-Yes-green.svg?style=flat" height="20"/></a>
+     <a href="https://jitpack.io/#rommansabbir/StoreX"><img alt="JitPack" src="https://img.shields.io/badge/JitPack-Yes-green.svg?style=flat" height="20"/></a>
 </p>
 
 <h1 align="center"> ⚡ Latest Version: 3.0.0 | Change Logs 🔰</h1>
