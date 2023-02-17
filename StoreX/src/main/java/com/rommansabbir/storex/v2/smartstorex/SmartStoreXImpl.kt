@@ -7,7 +7,7 @@ import com.rommansabbir.storex.v2.objectwritter.ObjectWriter
 import com.rommansabbir.storex.v2.objectwritter.ObjectWriterImpl
 import com.rommansabbir.storex.v2.strategy.StoreXCachingStrategy
 
-class SmartStoreXImpl : SmartStoreX {
+internal class SmartStoreXImpl : SmartStoreX {
 
     private val objectWriter: ObjectWriter by lazy { ObjectWriterImpl() }
 
