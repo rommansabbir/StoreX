@@ -1,30 +1,19 @@
 package com.rommansabbir.storex.v2.search
 
 import android.content.Context
-import com.rommansabbir.storex.FileUtils
 import com.rommansabbir.storex.v2.extensions.throwException
 import java.io.File
 import java.lang.ref.WeakReference
 
 internal class SmartStoreXSearchImpl : SmartStoreXSearch {
-    override fun getAllKeys(context: WeakReference<Context>): MutableList<String> {
+    override fun getAll(context: WeakReference<Context>): MutableList<String> {
         if (context.get() == null) {
             throwException("Context can't be null")
         }
         val fileExtension = ".storexfile"
-        val files: MutableList<File?> = mutableListOf()
-        FileUtils.getAllNestedFiles(
-            context.get()!!.applicationContext.cacheDir.absolutePath ?: "",
-            files,
-            fileExtension
-        )
-        val filesFromFileDir: MutableList<File?> = mutableListOf()
-        FileUtils.getAllNestedFiles(
-            context.get()!!.applicationContext.filesDir.absolutePath ?: "",
-            files,
-            fileExtension
-        )
-        files.addAll(filesFromFileDir)
+        val files: MutableList<File?> = searchStoreAbleObject(context.get()!!.applicationContext.cacheDir.absolutePath ?: "").apply {
+            addAll(searchStoreAbleObject(context.get()!!.applicationContext.filesDir.absolutePath ?: ""))
+        }
         val keys = mutableListOf<String>()
         files.forEach {
             it?.let {
@@ -33,5 +22,9 @@ internal class SmartStoreXSearchImpl : SmartStoreXSearch {
             }
         }
         return keys
+    }
+
+    override fun exist(fileName: String, context: WeakReference<Context>): Boolean {
+        return getAll(context).contains(fileName)
     }
 }
