@@ -26,6 +26,14 @@ class SmartStoreXSearchTest : BaseTestClass() {
 
     @Test
     fun `store files to cache and files dir and search for those files keys`() {
+        storeTestFile()
+        val key = smartStoreXSearch.getAll(WeakReference(context))
+        assert(key.contains("test_file"))
+        assert(key.contains("test_file_1"))
+        assert(!key.contains("test_file_2"))
+    }
+
+    private fun storeTestFile() {
         val cacheFileConfig = StoreXSmartConfig(
             WeakReference(context),
             "test_file",
@@ -40,8 +48,12 @@ class SmartStoreXSearchTest : BaseTestClass() {
         )
         smartStoreX.write(cacheFileConfig)
         smartStoreX.write(filesFileConfig)
-        val key = smartStoreXSearch.getAllKeys(WeakReference(context))
-        assert(key.contains("test_file"))
-        assert(key.contains("test_file_1"))
+    }
+
+    @Test
+    fun `search for a key found or not`(){
+        storeTestFile()
+        assert(smartStoreXSearch.exist("test_file", WeakReference(context)))
+        assert(!smartStoreXSearch.exist("test_file_345", WeakReference(context)))
     }
 }
