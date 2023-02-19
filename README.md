@@ -123,7 +123,7 @@ StoreAbleHashMap(HashMap)
 StoreAbleHashSet(HashSet)
 ```
 
-[Looking for old version documentation? Click here to see.](https://github.com/rommansabbir/StoreX/master/README_OLD.md)
+[Looking for old version documentation? Click here to see.](https://github.com/rommansabbir/StoreX/blob/master/README_OLD.md)
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#getting-started-quick)
 
